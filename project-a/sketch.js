@@ -12,7 +12,8 @@ let bgMix = 0;
 let nightOn = 0;
 
 function setup() {
-  createCanvas(800, 500);
+  let canvas = createCanvas(800, 500);
+  canvas.parent("p5-canvas-container")
   angleMode(DEGREES);
   makeSeaweed();
 }
