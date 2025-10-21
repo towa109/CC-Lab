@@ -6,41 +6,50 @@ CCLaboratories Biodiversity Atlas
 */
 
 let fireworks = [];
+let bubbles = [];
+let seaweed = [];
 let bgMix = 0;
 let nightOn = 0;
 
 function setup() {
-  let canvas = createCanvas(800, 500);
-  canvas.parent("p5-canvas-container")
+  createCanvas(800, 500);
   angleMode(DEGREES);
+  makeSeaweed();
 }
 
 function draw() {
-  let target = 0;
+  let target;
   if (nightOn === 1) {
     target = 1;
-  }
-  let sp = 0.06;
-  if (target > bgMix) {
-    bgMix = bgMix + sp;
   } else {
-    bgMix = bgMix - sp;
+    target = 0;
   }
-  if (bgMix < 0) {
-    bgMix = 0;
-  }
-  if (bgMix > 1) {
-    bgMix = 1;
-  }
+
+  let diff = target - bgMix;
+  bgMix = bgMix + diff * 0.06;
+  bgMix = constrain(bgMix, 0, 1);
 
   let inv = 1 - bgMix;
   let r = 165 * inv + 20 * bgMix;
   let g = 210 * inv + 28 * bgMix;
   let b = 240 * inv + 70 * bgMix;
-
   background(r, g, b);
 
-  drawBackgroundBubbles();
+  if (nightOn === 0) {
+    drawSeaweed();
+  }
+
+  drawHorns(500, 165);
+  creature();
+  drawEye(460, 170);
+  drawEye(540, 170);
+  drawCandyOrTorch(660, 290);
+
+  if (nightOn === 0) {
+    moveBubbles();
+  } else {
+    moveFireworks();
+  }
 }
 
 function keyPressed() {
@@ -51,66 +60,152 @@ function keyPressed() {
   }
 }
 
-function drawBackgroundBubbles() {
-  noStroke();
-  let i = 0;
-  while (i < 16) {
-    let t = frameCount * 0.7 + i * 35;
-    while (t > 560) {
-      t = t - 560;
+function mousePressed() {
+  if (nightOn === 1) {
+    // night: fireworks
+    for (let i = 0; i < 90; i++) {
+      let x = mouseX;
+      let y = mouseY;
+      let a = 255;
+      let r = random(200, 255);
+      let g = random(100, 255);
+      let b = random(200, 255);
+      let vx = random(-3, 3);
+      let vy = random(-3, 3);
+      fireworks.push([x, y, 5, a, r, g, b, vx, vy]);
     }
-    let y = 480 - t;
-
-    let s = frameCount * 0.5 + i * 90;
-    while (s > 920) {
-      s = s - 920;
+  } else {
+    // day: bubbles
+    for (let i = 0; i < 10; i++) {
+      bubbles.push([
+        mouseX + random(-6, 6),
+        mouseY + random(-6, 6),
+        random(-0.3, 0.3),
+        random(-2.0, -1.0),
+        random(10, 20),
+      ]);
     }
-    let x = -60 + s + sin(frameCount + i * 17) * 2;
-
-    let r = 8 + (sin(i * 19.3 + frameCount * 0.2) * 0.5 + 0.5) * 6;
-    fill(255, 255, 255, 25);
-    circle(x, y, r);
-
-    i = i + 1;
   }
-  drawHorns(500, 165);
-  creature();
-  drawEye(460, 170);
-  drawEye(540, 170);
-  drawCandy(660, 290);
+}
 
-  // fireworks
+function moveBubbles() {
+  let next = [];
+  for (let i = 0; i < bubbles.length; i++) {
+    let b = bubbles[i];
+    b[0] = b[0] + b[2];
+    b[1] = b[1] + b[3];
+    b[4] = b[4] - 0.15;
+
+    noFill();
+    stroke(180, 220, 255);
+    strokeWeight(2);
+    ellipse(b[0], b[1], b[4], b[4]);
+    noStroke();
+    fill(255);
+    circle(b[0] - b[4] * 0.22, b[1] - b[4] * 0.25, b[4] * 0.35);
+
+    if (b[1] + b[4] > -20) {
+      if (b[4] > 2) {
+        next.push(b);
+      }
+    }
+  }
+  bubbles = next;
+}
+
+function moveFireworks() {
+  noStroke();
+  let newList = [];
   for (let i = 0; i < fireworks.length; i++) {
     let f = fireworks[i];
-    fill(f[4], f[5], f[6], f[3]);
-    noStroke();
+    fill(f[4], f[5], f[6]);
     circle(f[0], f[1], 5);
     f[0] = f[0] + f[7];
     f[1] = f[1] + f[8];
     f[3] = f[3] - 5;
-  }
 
-  let newList = [];
-  for (let i = 0; i < fireworks.length; i++) {
-    if (fireworks[i][3] > 0) {
-      newList.push(fireworks[i]);
+    if (f[3] > 0) {
+      newList.push(f);
     }
   }
   fireworks = newList;
 }
 
-function mousePressed() {
-  for (let i = 0; i < 90; i++) {
-    let x = mouseX;
-    let y = mouseY;
-    let a = 255;
-    let r = random(200, 255);
-    let g = random(100, 255);
-    let b = random(200, 255);
-    let vx = random(-3, 3);
-    let vy = random(-3, 3);
-    fireworks.push([x, y, 5, a, r, g, b, vx, vy]);
+function makeSeaweed() {
+  seaweed = [];
+  for (let i = 0; i < 9; i++) {
+    let x = map(i, 0, 8, 50, width - 50);
+    let h = random(240, 320);
+    let w = random(28, 36);
+    let speed = random(0.12, 0.2);
+    let amp = random(10, 16);
+    let phase = random(0, 360);
+    let r = 18 + random(-2, 2);
+    let g = 120 + random(-6, 6);
+    let b = 105 + random(-4, 4);
+    seaweed.push({
+      x: x,
+      h: h,
+      w: w,
+      speed: speed,
+      amp: amp,
+      phase: phase,
+      col: [r, g, b],
+    });
   }
+}
+
+function drawSeaweed() {
+  for (let i = 0; i < seaweed.length; i++) {
+    drawOneWakame(seaweed[i]);
+  }
+}
+
+function drawOneWakame(sw) {
+  let baseSway = sin(frameCount * sw.speed + sw.phase) * sw.amp;
+  let segs = 12;
+  let baseY = height;
+
+  fill(sw.col[0], sw.col[1], sw.col[2]);
+  noStroke();
+
+  beginShape();
+  for (let s = 0; s <= segs; s++) {
+    let u = s / segs;
+    let ease = u * u * u;
+    let ruf = sin(frameCount * 0.8 + s * 28) * 2 * u;
+    let cx = sw.x + baseSway * ease + ruf;
+    let cy = baseY - sw.h * u;
+    let w = sw.w * (1 - u * 0.45) + 8;
+    vertex(cx - w * 0.5, cy);
+  }
+  for (let s = segs; s >= 0; s--) {
+    let u = s / segs;
+    let ease = u * u * u;
+    let ruf = sin(frameCount * 0.8 + s * 28) * 2 * u;
+    let cx = sw.x + baseSway * ease + ruf;
+    let cy = baseY - sw.h * u;
+    let w = sw.w * (1 - u * 0.45) + 8;
+    vertex(cx + w * 0.5, cy);
+  }
+  endShape(CLOSE);
+
+  // light streaks
+  let lr = sw.col[0] + 8;
+  if (lr > 255) lr = 255;
+  let lg = sw.col[1] + 20;
+  if (lg > 255) lg = 255;
+  let lb = sw.col[2] + 12;
+  if (lb > 255) lb = 255;
+  fill(lr, lg, lb);
+  let u1 = 0.55;
+  let u2 = 0.3;
+  let cx1 = sw.x + baseSway * (u1 * u1 * u1);
+  let cy1 = baseY - sw.h * u1;
+  let cx2 = sw.x + baseSway * (u2 * u2 * u2);
+  let cy2 = baseY - sw.h * u2;
+  ellipse(cx1 - 6, cy1, 22, 7);
+  ellipse(cx2 + 8, cy2, 18, 6);
 }
 
 function creature() {
@@ -139,7 +234,6 @@ function drawHorns(hx, hy) {
   translate(hx - 70, hy - 70);
   triangle(-25, 25, 0, -35, 25, 25);
   pop();
-
   push();
   translate(hx + 70, hy - 70);
   triangle(-25, 25, 0, -35, 25, 25);
@@ -149,37 +243,61 @@ function drawHorns(hx, hy) {
 function drawEye(x, y) {
   push();
   translate(x, y);
-  let blink = (sin(frameCount * 0.5) + 1) / 2;
+  let speed;
+  if (nightOn === 1) {
+    speed = 1.6;
+  } else {
+    speed = 0.5;
+  }
+  let blink = (sin(frameCount * speed) + 1) / 2;
   blink = 0.3 + 0.7 * blink;
+
   fill(255);
   ellipse(0, 0, 40, 35 * blink);
-  fill(30, 40, 70);
+  if (nightOn === 1) {
+    fill(255, 100, 150);
+  } else {
+    fill(30, 40, 70);
+  }
   ellipse(0, -2, 20, 25 * blink);
-  fill(255, 255, 255, 150);
+  fill(255);
   ellipse(5, -5 * blink, 5, 5 * blink);
   pop();
 }
 
-function drawCandy(px, py) {
+function drawCandyOrTorch(px, py) {
   push();
   translate(px, py);
-  let ang = sin(frameCount * 2.2) * 9 + sin(frameCount * 0.6) * 3;
-  rotate(ang);
+  let sway = sin(frameCount * 2.0) * 6 + sin(frameCount * 0.5) * 2;
+  rotate(sway);
 
   stroke(90, 60, 20);
   strokeWeight(7);
   line(0, 0, 0, -55);
-
   noStroke();
-  fill(255, 120, 180);
-  circle(0, -75, 60);
-  fill(140, 220, 255);
-  circle(0, -75, 48);
-  fill(255, 120, 180);
-  circle(0, -75, 36);
-  fill(140, 220, 255);
-  circle(0, -75, 22);
-  fill(255);
-  circle(0, -75, 8);
+
+  if (nightOn === 1) {
+    let fx = 0;
+    let fy = -75;
+    fill(255, 140, 60);
+    circle(fx, fy, 66);
+    fill(255, 190, 80);
+    circle(fx, fy - 3, 46);
+    fill(255, 230, 120);
+    circle(fx, fy - 6, 28);
+    fill(255, 255, 200);
+    circle(fx, fy - 9, 14);
+  } else {
+    fill(255, 120, 180);
+    circle(0, -75, 60);
+    fill(140, 220, 255);
+    circle(0, -75, 48);
+    fill(255, 120, 180);
+    circle(0, -75, 36);
+    fill(140, 220, 255);
+    circle(0, -75, 22);
+    fill(255);
+    circle(0, -75, 8);
+  }
   pop();
 }
