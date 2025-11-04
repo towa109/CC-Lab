@@ -37,9 +37,9 @@ class TowakoDancer {
     this.x = startX;
     this.y = startY;
     // add properties for your dancer here:
-    this.t = 0;                       // 時間カウンタ
-    this.bodyColor = color(188,239,247); // 水色（クラス内のプロパティとして保持）
-    this.accentColor = color(245,74,12); // オレンジ
+    this.t = 0;                       
+    this.bodyColor = color(188,239,247); 
+    this.accentColor = color(245,74,12); 
     //..
     //..
     //..
@@ -52,13 +52,11 @@ class TowakoDancer {
       console.log ("frame!")
     this.t += 0.05;
 
-    // ふわふわ上下（±6px）
+    
     this.floatY = sin(this.t * 2.0) * 6;
 
-    // 左右にゆらゆら（±4px）
     this.swingX = sin(this.t * 1.4) * 4;
 
-    // 羽の開閉角（±15度）
     this.wingDeg = sin(this.t * 3.5) * 15;
   
   }
@@ -72,9 +70,8 @@ class TowakoDancer {
     // ⬇️ draw your dancer from here ⬇️
       noStroke()
       
-      //クリオネあおい
       fill(this.bodyColor);
-      ellipse(0, 30, 80, 170);  // メインボディ（200x200以内）
+      ellipse(0, 30, 80, 170); 
       circle(0, -50, 85);
       
       push();
@@ -82,22 +79,22 @@ class TowakoDancer {
       ellipse(40, -10, 145, 30);
       pop();
 
-      // 羽（左）
+      
       push();
       rotate(radians(-this.wingDeg));
-      ellipse(-40, -10, 145, 30); // ※幅は正のまま、xを負にして左右対称
+      ellipse(-40, -10, 145, 30); 
       pop();
 
-      // 触角っぽいとこ
+      
       triangle(-10,-70, 40,-70, 30,-110);
       triangle( 10,-70,-40,-70,-30,-110);
 
-      // お腹のオレンジ
+      
       fill(this.accentColor);
       circle(0, -40, 40);
       ellipse(0, 10, 40, 80);
 
-      // 仕上げ：ガイドは必要なら残してOK
+      
       this.drawReferenceShapes();
       pop();
   }
