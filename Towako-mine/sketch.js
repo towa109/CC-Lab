@@ -24,6 +24,7 @@ function draw() {
   for (let i=0; i<clouds.length; i++){
     //clouds[i] move()
     clouds[i].display()
+    clouds[i].move()
     
   }
 }
@@ -39,16 +40,14 @@ class Cloud{
   }
 
   move (){
-   // this.x+= random(-2,1)
-    //this.y += random(-2,1)
-
-    this.x+=this.speedX
-    this.y+=this.speedY
+   this.x+= random(-2,1)
+   this.y += random(-2,1)
+   this.x+=this.speedX
+   this.y+=this.speedY
 
     if(this,x > width || this.x<0){
-      this speedX= -this.speedX
+      this.speedX= -this.speedX
     }
-
     if(this,y > width || this.y<0){
       this.speedY= -this.speedY
     }
