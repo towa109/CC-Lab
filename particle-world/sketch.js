@@ -1,6 +1,4 @@
-// Spiral-in stars: spin from outside -> halfway flip -> vanish at center ⭐️
-
-let NUM_OF_PARTICLES = i
+let NUM_OF_PARTICLES = 200;
 let MAX_OF_PARTICLES = 500;
 let particles = [];
 let CX, CY, MAXR;
@@ -8,9 +6,10 @@ let CX, CY, MAXR;
 function setup() {
   let canvas = createCanvas(800, 500);
   canvas.parent("p5-canvas-container");
+
   CX = width * 0.5;
   CY = height * 0.5;
-  MAXR = dist(0, 0, CX, CY); // far corner-ish
+  MAXR = dist(0, 0, CX, CY);
   colorMode(HSB, 360, 100, 100, 255);
   noStroke();
 
@@ -20,7 +19,6 @@ function setup() {
 }
 
 function draw() {
-  // nice neutral backdrop
   background(215, 225, 235);
 
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -28,12 +26,10 @@ function draw() {
     p.update();
     p.display();
     if (p.done) {
-      // recycle to keep the show going
-      particles[i] = new Particle();
+      particles[i] = new Particle(); // respawn
     }
   }
 
-  // cap (not really needed since we recycle)
   if (particles.length > MAX_OF_PARTICLES) {
     particles.splice(0, particles.length - MAX_OF_PARTICLES);
   }
@@ -41,74 +37,62 @@ function draw() {
 
 class Particle {
   constructor() {
-    // motion params
-    this.startR = random(MAXR * 0.75, MAXR * 1.05); // start near the edge
-    this.ang = random(TWO_PI);
-    this.angSpeed = random(0.02, 0.05);             // base spin speed
-    this.life = 0;                                   // 0 → 1
-    this.lifeSpeed = random(0.004, 0.008);           // how fast to center
-    this.size = random(16, 32);
+    this.x = random(width);
+    this.y = random(height);
 
-    // color + twinkle
+    const speed = random(1.2, 2.2);
+    const dir = random(TWO_PI);
+    this.vx = cos(dir) * speed;
+    this.vy = sin(dir) * speed;
+
+    this.baseSize = random(14, 28);
     this.h = random(360);
-    this.tw = random(1000);
-    this.spin = random(-0.03, 0.03);
 
-    // bookkeeping
-    this.x = CX + cos(this.ang) * this.startR;
-    this.y = CY + sin(this.ang) * this.startR;
+    this.life = 1.0;                         // 1 → 0
+    this.decay = random(0.003, 0.007);       // how fast it fades
     this.done = false;
   }
 
   update() {
-    // life progress
-    this.life += this.lifeSpeed;
-    if (this.life >= 1) {
-      this.done = true; // reached middle → disappear
-      return;
-    }
+    // small random turn each frame
+    const turn = random(-0.06, 0.06);
+    const ct = cos(turn), st = sin(turn);
+    const vx2 = this.vx * ct - this.vy * st;
+    const vy2 = this.vx * st + this.vy * ct;
+    this.vx = vx2;
+    this.vy = vy2;
 
-    // spiral radius shrinks to 0 at center
-    const r = (1 - this.life) * this.startR;
+    // move
+    this.x += this.vx;
+    this.y += this.vy;
 
-    // flip spin direction at halfway point
-    const dir = (this.life < 0.5) ? 1 : -1;
-    this.ang += dir * this.angSpeed;
+    // bounce on edges
+    if (this.x < 0)   { this.x = 0;   this.vx *= -1; }
+    if (this.x > width)  { this.x = width;  this.vx *= -1; }
+    if (this.y < 0)   { this.y = 0;   this.vy *= -1; }
+    if (this.y > height) { this.y = height; this.vy *= -1; }
 
-    // position on spiral
-    // small wobble makes the path organic
-    const wob = 2.5 * sin(frameCount * 0.05 + this.tw);
-    this.x = CX + cos(this.ang) * (r + wob);
-    this.y = CY + sin(this.ang) * (r + wob);
+    // decay
+    this.life -= this.decay;
+    if (this.life <= 0) this.done = true;
 
-    // twinkle + pastel hue drift
-    this.tw += 0.12;
-    this.h = (this.h + 0.2) % 360;
+    // hue drift (tiny)
+    this.h = (this.h + 0.25) % 360;
   }
 
   display() {
     if (this.done) return;
 
-    push();
-    translate(this.x, this.y);
-    rotate(this.spin * frameCount);
-
-    // fade as it nears the center (last 30% of life)
-    const alpha = (this.life < 0.7)
-      ? 210
-      : map(this.life, 0.7, 1.0, 210, 0);
-
-    // soft pastel palette
-    const s = 35 + 15 * noise(this.tw * 0.02);
+    const alpha = 220 * this.life;                         // fade out
+    const s = 45;                                          // gentle pastel
     const b = 95;
+    const size = this.baseSize * (0.6 + 0.4 * this.life);  // shrink a bit
 
     fill(this.h, s, b, alpha);
-    drawStar(0, 0, this.size * 0.42, this.size * 0.9, 5);
-    pop();
+    drawStar(this.x, this.y, size * 0.42, size * 0.9, 5);
   }
 }
 
-// reusable star drawer
 function drawStar(x, y, innerR, outerR, npoints) {
   let angle = TWO_PI / npoints;
   let halfAngle = angle / 2.0;
