@@ -26,7 +26,7 @@ function draw() {
     p.update();
     p.display();
     if (p.done) {
-      particles[i] = new Particle(); // respawn
+      particles[i] = new Particle(); 
     }
   }
 
@@ -48,13 +48,13 @@ class Particle {
     this.baseSize = random(14, 28);
     this.h = random(360);
 
-    this.life = 1.0;                         // 1 → 0
-    this.decay = random(0.003, 0.007);       // how fast it fades
+    this.life = 1.0;                        
+    this.decay = random(0.003, 0.007);       
     this.done = false;
   }
 
   update() {
-    // small random turn each frame
+   
     const turn = random(-0.06, 0.06);
     const ct = cos(turn), st = sin(turn);
     const vx2 = this.vx * ct - this.vy * st;
@@ -62,31 +62,31 @@ class Particle {
     this.vx = vx2;
     this.vy = vy2;
 
-    // move
+   
     this.x += this.vx;
     this.y += this.vy;
 
-    // bounce on edges
+    
     if (this.x < 0)   { this.x = 0;   this.vx *= -1; }
     if (this.x > width)  { this.x = width;  this.vx *= -1; }
     if (this.y < 0)   { this.y = 0;   this.vy *= -1; }
     if (this.y > height) { this.y = height; this.vy *= -1; }
 
-    // decay
+    
     this.life -= this.decay;
     if (this.life <= 0) this.done = true;
 
-    // hue drift (tiny)
+  
     this.h = (this.h + 0.25) % 360;
   }
 
   display() {
     if (this.done) return;
 
-    const alpha = 220 * this.life;                         // fade out
-    const s = 45;                                          // gentle pastel
+    const alpha = 220 * this.life;                         
+    const s = 45;                                          
     const b = 95;
-    const size = this.baseSize * (0.6 + 0.4 * this.life);  // shrink a bit
+    const size = this.baseSize * (0.6 + 0.4 * this.life);  
 
     fill(this.h, s, b, alpha);
     drawStar(this.x, this.y, size * 0.42, size * 0.9, 5);
