@@ -2,7 +2,7 @@
 
 let img;
 let tiles = [];
-let tileSize = 32;
+let tileSize = 8;
 let assembled = true; // start in assembled mode (photo visible)
 
 function preload() {
