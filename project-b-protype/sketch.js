@@ -1,33 +1,40 @@
-let img;
+let img1;
+let img2;
 let tiles = [];
 let tileSize = 5;
-let assembled = true; // start in assembled mode (photo visible)
+let assembled = true;      // true = 集合してる, false = 散ってる
+let currentImageIndex = 0; // 0 = img1, 1 = img2
 
 function preload() {
-  img = loadImage("DSC04190.jpg");
+  // ★ ここのファイル名は自分の画像に合わせて変えてね
+  img1 = loadImage("DSC04190.jpg");   // 最初の写真
+  img2 = loadImage("DSC_7239.jpg");   // 変身後の写真
 }
 
 function setup() {
   createCanvas(800, 450);
 
-  // resize the image to match canvas
-  img.resize(width, height);
-  img.loadPixels();
+  // 両方の画像をキャンバスサイズに合わせる
+  img1.resize(width, height);
+  img2.resize(width, height);
+  img1.loadPixels();
+  img2.loadPixels();
 
-  // create pixel tiles
+  // ピクセルタイルを作成
   for (let y = 0; y < height; y += tileSize) {
     for (let x = 0; x < width; x += tileSize) {
-      let c = img.get(x, y);
-      let p = new PixelPiece(x, y, c);
+      let c1 = img1.get(x, y); // 1枚目の色
+      let c2 = img2.get(x, y); // 2枚目の色
+      let p = new PixelPiece(x, y, c1, c2);
       tiles.push(p);
     }
   }
 
-  // ★ ここを関数でやる
+  // 最初はホーム位置にそろえる
   resetTilesToHome();
 }
 
-// tiles 全部を home 位置に戻す用の関数
+// tiles 全部を home 位置に戻す
 function resetTilesToHome() {
   for (let i = 0; i < tiles.length; i++) {
     tiles[i].x = tiles[i].homeX;
@@ -38,11 +45,13 @@ function resetTilesToHome() {
 function draw() {
   background(10);
 
+  // ピクセル更新＆表示
   for (let i = 0; i < tiles.length; i++) {
     tiles[i].update(assembled);
-    tiles[i].display(tileSize);
+    tiles[i].display(tileSize, currentImageIndex);
   }
 
+  // 下の説明テキスト
   fill(255);
   noStroke();
   textSize(14);
@@ -50,20 +59,24 @@ function draw() {
   if (assembled) {
     text("click = scatter pixels", width / 2, height - 10);
   } else {
-    text("click = assemble pixels", width / 2, height - 10);
+    text("click = assemble pixels (will form the OTHER picture)", width / 2, height - 10);
   }
 }
 
 function mousePressed() {
+  // true/false 切り替え
   assembled = !assembled;
 
   if (!assembled) {
-    // scatter モード入るとき
+    // ⇨ scatter モードに入るとき
     for (let i = 0; i < tiles.length; i++) {
       tiles[i].resetScatterTarget();
     }
   } else {
-    // assemble モード戻るとき
+    // ⇨ assemble モードに戻るとき
+    // ここで画像を切り替え（0 ⇄ 1）
+    currentImageIndex = 1 - currentImageIndex;
+
     for (let i = 0; i < tiles.length; i++) {
       tiles[i].orbitRadius = random(10, 40);
     }
@@ -72,27 +85,29 @@ function mousePressed() {
 
 // PixelPiece Class
 class PixelPiece {
-  constructor(homeX, homeY, col) {
+  constructor(homeX, homeY, col1, col2) {
     this.homeX = homeX;
     this.homeY = homeY;
 
-    // start at home position
+    // 現在位置（最初はhome）
     this.x = homeX;
     this.y = homeY;
 
-    this.col = col;
+    // 2枚分の色を持たせる
+    this.col1 = col1;
+    this.col2 = col2;
 
     // scatter target
     this.scatterX = random(width);
     this.scatterY = random(height);
 
     // extra motion parameters
-    this.angle = random(TWO_PI);          // for spiral / rotation
-    this.orbitRadius = random(10, 40);    // how big the spiral is at start
-    this.noiseOffset = random(1000);      // perlin noise seed
-    this.vx = random(-0.5, 0.5);          // drift speed in scatter mode
-    this.vy = random(-0.5, 0.5);          // drift speed in scatter mode
-    this.spinSpeed = random(-0.08, 0.08); // rotation speed
+    this.angle = random(TWO_PI);          // 回転用角度
+    this.orbitRadius = random(10, 40);    // 集合時のぐるぐる半径
+    this.noiseOffset = random(1000);      // パーリンノイズ用
+    this.vx = random(-0.5, 0.5);          // scatterモードのドリフト速度
+    this.vy = random(-0.5, 0.5);
+    this.spinSpeed = random(-0.08, 0.08); // 回転スピード
   }
 
   update(assembleMode) {
@@ -123,6 +138,7 @@ class PixelPiece {
         this.vy *= -1;
       }
 
+      // ノイズでゆらゆら
       this.noiseOffset += 0.01;
       let wobbleX = map(noise(this.noiseOffset), 0, 1, -20, 20);
       let wobbleY = map(noise(this.noiseOffset + 1000), 0, 1, -20, 20);
@@ -133,7 +149,7 @@ class PixelPiece {
       easeAmount = 0.08;
     }
 
-    // イージング
+    // イージング移動
     this.x += (targetX - this.x) * easeAmount;
     this.y += (targetY - this.y) * easeAmount;
   }
@@ -147,9 +163,14 @@ class PixelPiece {
     this.orbitRadius = random(20, 60);
   }
 
-  display(size) {
+  // imageIndex: 0なら1枚目, 1なら2枚目
+  display(size, imageIndex) {
     noStroke();
-    fill(this.col);
+    if (imageIndex === 0) {
+      fill(this.col1);
+    } else {
+      fill(this.col2);
+    }
     rect(this.x, this.y, size, size);
   }
 }
