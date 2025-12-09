@@ -1,11 +1,9 @@
-
 let img;
 let tiles = [];
 let tileSize = 5;
 let assembled = true; // start in assembled mode (photo visible)
 
 function preload() {
- 
   img = loadImage("DSC04190.jpg");
 }
 
@@ -25,10 +23,15 @@ function setup() {
     }
   }
 
-  
-  for (let t of tiles) {
-    t.x = t.homeX;
-    t.y = t.homeY;
+  // ★ ここを関数でやる
+  resetTilesToHome();
+}
+
+// tiles 全部を home 位置に戻す用の関数
+function resetTilesToHome() {
+  for (let i = 0; i < tiles.length; i++) {
+    tiles[i].x = tiles[i].homeX;
+    tiles[i].y = tiles[i].homeY;
   }
 }
 
@@ -54,22 +57,20 @@ function draw() {
 function mousePressed() {
   assembled = !assembled;
 
-  
   if (!assembled) {
+    // scatter モード入るとき
     for (let i = 0; i < tiles.length; i++) {
       tiles[i].resetScatterTarget();
     }
   } else {
-    
+    // assemble モード戻るとき
     for (let i = 0; i < tiles.length; i++) {
       tiles[i].orbitRadius = random(10, 40);
     }
   }
 }
 
-
 // PixelPiece Class
-
 class PixelPiece {
   constructor(homeX, homeY, col) {
     this.homeX = homeX;
@@ -85,7 +86,7 @@ class PixelPiece {
     this.scatterX = random(width);
     this.scatterY = random(height);
 
-    // ✨ extra motion parameters
+    // extra motion parameters
     this.angle = random(TWO_PI);          // for spiral / rotation
     this.orbitRadius = random(10, 40);    // how big the spiral is at start
     this.noiseOffset = random(1000);      // perlin noise seed
@@ -98,9 +99,8 @@ class PixelPiece {
     let targetX, targetY, easeAmount;
 
     if (assembleMode) {
-      
+      // assemble モード：くるくるしながら home に近づく
       this.angle += this.spinSpeed;
-      
       this.orbitRadius = lerp(this.orbitRadius, 0, 0.05);
 
       let offsetX = cos(this.angle) * this.orbitRadius;
@@ -109,13 +109,13 @@ class PixelPiece {
       targetX = this.homeX + offsetX;
       targetY = this.homeY + offsetY;
 
-      easeAmount = 0.2; 
+      easeAmount = 0.2;
     } else {
-      
+      // scatter モード
       this.scatterX += this.vx;
       this.scatterY += this.vy;
 
-      
+      // ある程度外に出たら向き反転
       if (this.scatterX < -100 || this.scatterX > width + 100) {
         this.vx *= -1;
       }
@@ -123,7 +123,6 @@ class PixelPiece {
         this.vy *= -1;
       }
 
-      
       this.noiseOffset += 0.01;
       let wobbleX = map(noise(this.noiseOffset), 0, 1, -20, 20);
       let wobbleY = map(noise(this.noiseOffset + 1000), 0, 1, -20, 20);
@@ -131,22 +130,21 @@ class PixelPiece {
       targetX = this.scatterX + wobbleX;
       targetY = this.scatterY + wobbleY;
 
-      easeAmount = 0.08; 
+      easeAmount = 0.08;
     }
 
-    
+    // イージング
     this.x += (targetX - this.x) * easeAmount;
     this.y += (targetY - this.y) * easeAmount;
   }
 
   resetScatterTarget() {
-    
     this.scatterX = random(width);
     this.scatterY = random(height);
     this.vx = random(-0.8, 0.8);
     this.vy = random(-0.8, 0.8);
     this.noiseOffset = random(1000);
-    this.orbitRadius = random(20, 60); 
+    this.orbitRadius = random(20, 60);
   }
 
   display(size) {
