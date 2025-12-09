@@ -67,9 +67,9 @@ function mousePressed() {
   }
 }
 
-// ==========================
+
 // PixelPiece Class
-// ==========================
+
 class PixelPiece {
   constructor(homeX, homeY, col) {
     this.homeX = homeX;
