@@ -12,7 +12,7 @@ let mode = "home";
 let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
-let tileSize = 5;
+let tileSize = 8;
 let assembled = true;
 let clickCount = 0;
 
