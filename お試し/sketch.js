@@ -36,7 +36,9 @@ function preload() {
 //  setup
 // =========================
 function setup() {
-  createCanvas(800, 450);
+  // ⭐ create canvas and put it inside the HTML div
+  let cnv = createCanvas(800, 450);
+  cnv.parent("p5-canvas-container");
 
   mySelect = createSelect();
   mySelect.option("spring");
@@ -44,6 +46,7 @@ function setup() {
   mySelect.option("fall");
   mySelect.option("winter");
 
+  // when season is selected, instantly show the picture
   mySelect.changed(startPixelMode);
 }
 
@@ -69,14 +72,17 @@ function drawHomeScreen() {
   textAlign(CENTER);
   fill(0);
 
+  // move text lower so it doesn't overlap the future image area
   textSize(26);
-  text("Select a season to begin", width/2, height/2 + 70);
+  text("Select a season to begin", width / 2, height / 2 + 70);
 
   textSize(16);
-  text("Picture will appear instantly", width/2, height/2 + 100);
+  text("Picture will appear instantly", width / 2, height / 2 + 100);
 
-  // selector centered under where image will be
-  mySelect.position(width/2 - 50, height/2 + 140);
+  // put the dropdown UNDER the picture area (centered horizontally)
+  let uiX = width / 2 - 50;
+  let uiY = height / 2 + 140;
+  mySelect.position(uiX, uiY);
 }
 
 
@@ -91,8 +97,8 @@ function startPixelMode() {
   else if (season === "fall")   currentImg = imgFall;
   else currentImg = imgWinter;
 
-  // resize for better control
-  currentImg.resize(600, 338); // keep nice aspect ratio
+  // resize image smaller & consistent for performance and centering
+  currentImg.resize(600, 338); // 16:9-ish, fits nicely
   currentImg.loadPixels();
 
   buildTilesForCenteredImage();
@@ -111,15 +117,13 @@ function startPixelMode() {
 function buildTilesForCenteredImage() {
   tiles = [];
 
-  // ⭐ center the image inside the canvas
+  // calculate the offset so the image is centered in the canvas
   offsetX = (width  - currentImg.width)  / 2;
   offsetY = (height - currentImg.height) / 2;
 
   for (let y = 0; y < currentImg.height; y += tileSize) {
     for (let x = 0; x < currentImg.width; x += tileSize) {
-
       let c = currentImg.get(x, y);
-
       let p = new PixelPiece(x + offsetX, y + offsetY, c);
       tiles.push(p);
     }
@@ -140,16 +144,17 @@ function drawPixelScreen() {
 
   fill(255);
   textAlign(CENTER);
+  textSize(14);
 
   if (clickCount < 3) {
-    text(assembled ? "click = scatter" : "click = assemble", width/2, height - 20);
-    text("3rd click = back to home", width/2, height - 5);
+    text(assembled ? "click = scatter" : "click = assemble", width / 2, height - 20);
+    text("3rd click = back to home", width / 2, height - 5);
   }
 }
 
 
 // =========================
-//  mouse click
+//  CLICK LOGIC
 // =========================
 function mousePressed() {
   if (mode !== "pixels") return;
@@ -171,7 +176,7 @@ function mousePressed() {
 
 
 // =========================
-//  PIXEL PIECE CLASS
+//  PixelPiece CLASS
 // =========================
 class PixelPiece {
   constructor(homeX, homeY, col) {
