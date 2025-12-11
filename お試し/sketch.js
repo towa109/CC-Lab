@@ -36,16 +36,14 @@ function setup() {
   createCanvas(800, 450);
 
   // ---- ホーム UI ----
-  button = createButton('start');
-  button.position(350, 200);
-  button.mousePressed(startPixelMode);
-
   mySelect = createSelect();
-  mySelect.position(350, 160);
   mySelect.option('spring');
   mySelect.option('summer');
   mySelect.option('fall');
   mySelect.option('winter');
+
+  button = createButton('start');
+  button.mousePressed(startPixelMode);
 }
 
 
@@ -70,10 +68,17 @@ function drawHomeScreen() {
   textAlign(CENTER);
   fill(0);
   textSize(26);
-  text("Choose a season and press start", width/2, 100);
+  text("Choose a season and press start", width/2, 80);
 
   textSize(16);
-  text("No picture will show until you start", width/2, 130);
+  text("Picture will appear AFTER pressing start", width/2, 110);
+
+  // UI を写真の出る位置の「上の中央」に置く
+  let uiX = width / 2 - 60;
+  let uiY = 150;
+
+  mySelect.position(uiX, uiY);
+  button.position(uiX, uiY + 40);
 }
 
 
@@ -95,8 +100,8 @@ function startPixelMode() {
   mode = "pixels";
 
   // hide UI
-  button.hide();
   mySelect.hide();
+  button.hide();
 }
 
 
@@ -166,8 +171,8 @@ function mousePressed() {
     mode = "home";
     tiles = [];
 
-    button.show();
     mySelect.show();
+    button.show();
   }
 }
 
