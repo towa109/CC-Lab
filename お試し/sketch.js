@@ -1,34 +1,34 @@
 // =========================
-//  GLOBAL VARIABLES
+//  グローバル変数
 // =========================
 
 // UI
+let myInput;
+let button;
 let mySelect;
+let displayText = "";
 
-// mode
-let mode = "home";
+// モード管理
+let mode = "home"; // "home" or "pixels"
 
-// images
+// 画像 & ピクセル
 let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
-let tileSize = 8;
-let assembled = true;
-let clickCount = 0;
-
-// center offsets
-let offsetX = 0;
-let offsetY = 0;
+let tileSize = 5;
+let assembled = true; // true = 集合, false = 散乱
+let clickCount = 0;   // ピクセル画面でのクリック回数
 
 
 // =========================
-//  preload images
+//  画像読み込み
 // =========================
 function preload() {
-  imgSpring = loadImage("DSC04190.jpg");
-  imgSummer = loadImage("DSC04033.jpg");
-  imgFall   = loadImage("DSC04626-Enhanced-NR.jpg");
-  imgWinter = loadImage("DSC_7239.jpg");
+  // ファイル名はプロジェクトと同じフォルダに置いておく
+  imgSpring = loadImage("DSC04190.jpg");              // 桜の川
+  imgSummer = loadImage("DSC04033.jpg");              // 緑の日本家屋
+  imgFall   = loadImage("DSC04626-Enhanced-NR.jpg");  // 室内（猫）
+  imgWinter = loadImage("DSC_7239.jpg");              // 雪の日本家屋
 }
 
 
@@ -36,18 +36,22 @@ function preload() {
 //  setup
 // =========================
 function setup() {
-  // ⭐ create canvas and put it inside the HTML div
-  let cnv = createCanvas(800, 450);
-  cnv.parent("p5-canvas-container");
+  createCanvas(800, 450);
+
+  // ---- ホーム画面 UI ----
+  myInput = createInput();
+  myInput.position(20, 100);
+
+  button = createButton('start');
+  button.position(170, 100);
+  button.mousePressed(startPixelMode); // ボタン押したらピクセルモードへ
 
   mySelect = createSelect();
-  mySelect.option("spring");
-  mySelect.option("summer");
-  mySelect.option("fall");
-  mySelect.option("winter");
-
-  // when season is selected, instantly show the picture
-  mySelect.changed(startPixelMode);
+  mySelect.position(300, 100);
+  mySelect.option('spring');
+  mySelect.option('summer');
+  mySelect.option('fall');
+  mySelect.option('winter');
 }
 
 
@@ -57,104 +61,122 @@ function setup() {
 function draw() {
   if (mode === "home") {
     drawHomeScreen();
-  } else {
+  } else if (mode === "pixels") {
     drawPixelScreen();
   }
 }
 
 
 // =========================
-//  HOME SCREEN
+//  ホーム画面の描画
 // =========================
 function drawHomeScreen() {
-  background(235);
+  // 季節で背景色ちょっと変える
+  let season = mySelect.value();
+  if (season === 'spring') background(255, 220, 230);
+  else if (season === 'summer') background(210, 255, 220);
+  else if (season === 'fall')   background(255, 235, 210);
+  else if (season === 'winter') background(220, 235, 255);
+  else background(240);
 
-  textAlign(CENTER);
   fill(0);
-
-  // move text lower so it doesn't overlap the future image area
-  textSize(26);
-  text("Select a season to begin", width / 2, height / 2 + 70);
+  textSize(20);
+  textAlign(LEFT);
+  text("Type something and choose a season!", 20, 50);
 
   textSize(16);
-  text("Picture will appear instantly", width / 2, height / 2 + 100);
-
-  // put the dropdown UNDER the picture area (centered horizontally)
-  let uiX = width / 2 - 50;
-  let uiY = height / 2 + 140;
-  mySelect.position(uiX, uiY);
+  text(displayText, 25, 75);
 }
 
 
 // =========================
-//  START PIXEL MODE
+//  ボタンが押されたとき
 // =========================
 function startPixelMode() {
+  // 入力テキストを覚えておく
+  displayText = myInput.value();
+
+  // 選んだ季節から画像を決める
   let season = mySelect.value();
+  if (season === 'spring') currentImg = imgSpring;
+  else if (season === 'summer') currentImg = imgSummer;
+  else if (season === 'fall')   currentImg = imgFall;
+  else if (season === 'winter') currentImg = imgWinter;
+  else currentImg = imgSpring;
 
-  if (season === "spring") currentImg = imgSpring;
-  else if (season === "summer") currentImg = imgSummer;
-  else if (season === "fall")   currentImg = imgFall;
-  else currentImg = imgWinter;
+  // 画像からタイルを作成
+  buildTilesForImage(currentImg);
 
-  // resize image smaller & consistent for performance and centering
-  currentImg.resize(600, 338); // 16:9-ish, fits nicely
-  currentImg.loadPixels();
-
-  buildTilesForCenteredImage();
-
+  // 状態リセット
   assembled = true;
   clickCount = 0;
   mode = "pixels";
 
+  // UI を隠す
+  myInput.hide();
+  button.hide();
   mySelect.hide();
 }
 
 
-// =========================
-//  BUILD PIXELS CENTERED
-// =========================
-function buildTilesForCenteredImage() {
+// 指定した画像から tiles を作る
+function buildTilesForImage(img) {
   tiles = [];
 
-  // calculate the offset so the image is centered in the canvas
-  offsetX = (width  - currentImg.width)  / 2;
-  offsetY = (height - currentImg.height) / 2;
+  img.resize(width, height);
+  img.loadPixels();
 
-  for (let y = 0; y < currentImg.height; y += tileSize) {
-    for (let x = 0; x < currentImg.width; x += tileSize) {
-      let c = currentImg.get(x, y);
-      let p = new PixelPiece(x + offsetX, y + offsetY, c);
+  for (let y = 0; y < height; y += tileSize) {
+    for (let x = 0; x < width; x += tileSize) {
+      let c = img.get(x, y);
+      let p = new PixelPiece(x, y, c);
       tiles.push(p);
     }
+  }
+
+  // 最初は写真どおり
+  for (let t of tiles) {
+    t.x = t.homeX;
+    t.y = t.homeY;
   }
 }
 
 
 // =========================
-//  PIXEL SCREEN
+//  ピクセル画面の描画
 // =========================
 function drawPixelScreen() {
   background(10);
 
-  for (let p of tiles) {
-    p.update(assembled);
-    p.display(tileSize);
+  for (let i = 0; i < tiles.length; i++) {
+    tiles[i].update(assembled);
+    tiles[i].display(tileSize);
   }
 
+  // 下の説明テキスト
   fill(255);
+  noStroke();
   textAlign(CENTER);
   textSize(14);
 
   if (clickCount < 3) {
-    text(assembled ? "click = scatter" : "click = assemble", width / 2, height - 20);
+    if (assembled) {
+      text("click = scatter pixels", width / 2, height - 20);
+    } else {
+      text("click = assemble pixels", width / 2, height - 20);
+    }
     text("3rd click = back to home", width / 2, height - 5);
   }
+
+  // 上に入力テキストも表示
+  textAlign(LEFT);
+  textSize(16);
+  text(displayText, 20, 30);
 }
 
 
 // =========================
-//  CLICK LOGIC
+//  マウスクリック
 // =========================
 function mousePressed() {
   if (mode !== "pixels") return;
@@ -162,21 +184,36 @@ function mousePressed() {
   clickCount++;
 
   if (clickCount < 3) {
+    // 1回目・2回目 → 散乱 / 集合 トグル
     assembled = !assembled;
 
     if (!assembled) {
-      for (let p of tiles) p.resetScatterTarget();
+      // 散らばるモード
+      for (let i = 0; i < tiles.length; i++) {
+        tiles[i].resetScatterTarget();
+      }
+    } else {
+      // 集合モード
+      for (let i = 0; i < tiles.length; i++) {
+        tiles[i].orbitRadius = random(10, 40);
+      }
     }
   } else {
+    // 3回目 → ホーム画面へ戻る
     mode = "home";
     tiles = [];
+    assembled = true;
+
+    // UI を再表示
+    myInput.show();
+    button.show();
     mySelect.show();
   }
 }
 
 
 // =========================
-//  PixelPiece CLASS
+//  PixelPiece クラス
 // =========================
 class PixelPiece {
   constructor(homeX, homeY, col) {
@@ -185,38 +222,68 @@ class PixelPiece {
 
     this.x = homeX;
     this.y = homeY;
+
     this.col = col;
 
+    // scatter 用ターゲット
     this.scatterX = random(width);
     this.scatterY = random(height);
 
-    this.vx = random(-0.6, 0.6);
-    this.vy = random(-0.6, 0.6);
+    // 動きパラメータ
+    this.angle = random(TWO_PI);
+    this.orbitRadius = random(10, 40);
+    this.noiseOffset = random(1000);
+    this.vx = random(-0.5, 0.5);
+    this.vy = random(-0.5, 0.5);
+    this.spinSpeed = random(-0.08, 0.08);
   }
 
   update(assembleMode) {
-    let targetX, targetY;
+    let targetX, targetY, easeAmount;
 
     if (assembleMode) {
-      targetX = this.homeX;
-      targetY = this.homeY;
+      // 集合モード：くるくるしながら home に戻る
+      this.angle += this.spinSpeed;
+      this.orbitRadius = lerp(this.orbitRadius, 0, 0.05);
+
+      let offsetX = cos(this.angle) * this.orbitRadius;
+      let offsetY = sin(this.angle) * this.orbitRadius;
+
+      targetX = this.homeX + offsetX;
+      targetY = this.homeY + offsetY;
+      easeAmount = 0.2;
     } else {
+      // 散乱モード
       this.scatterX += this.vx;
       this.scatterY += this.vy;
 
-      targetX = this.scatterX;
-      targetY = this.scatterY;
+      if (this.scatterX < -100 || this.scatterX > width + 100) {
+        this.vx *= -1;
+      }
+      if (this.scatterY < -100 || this.scatterY > height + 100) {
+        this.vy *= -1;
+      }
+
+      this.noiseOffset += 0.01;
+      let wobbleX = map(noise(this.noiseOffset), 0, 1, -20, 20);
+      let wobbleY = map(noise(this.noiseOffset + 1000), 0, 1, -20, 20);
+
+      targetX = this.scatterX + wobbleX;
+      targetY = this.scatterY + wobbleY;
+      easeAmount = 0.08;
     }
 
-    this.x += (targetX - this.x) * 0.1;
-    this.y += (targetY - this.y) * 0.1;
+    this.x += (targetX - this.x) * easeAmount;
+    this.y += (targetY - this.y) * easeAmount;
   }
 
   resetScatterTarget() {
     this.scatterX = random(width);
     this.scatterY = random(height);
-    this.vx = random(-1, 1);
-    this.vy = random(-1, 1);
+    this.vx = random(-0.8, 0.8);
+    this.vy = random(-0.8, 0.8);
+    this.noiseOffset = random(1000);
+    this.orbitRadius = random(20, 60);
   }
 
   display(size) {
@@ -225,3 +292,4 @@ class PixelPiece {
     rect(this.x, this.y, size, size);
   }
 }
+

@@ -23,9 +23,13 @@ canvas {
   display: block;
 }
 /* center the dropdown no matter where p5 places it */
+/* center the season dropdown */
 select {
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
+  display: block;
+  margin: 20px auto 0 auto;  /* centers horizontally */
+  font-size: 16px;
+  padding: 6px 12px;
+  border-radius: 6px;
 }
+
 
