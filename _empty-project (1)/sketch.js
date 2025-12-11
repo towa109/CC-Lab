@@ -43,7 +43,7 @@ function setup() {
   myInput.position(20, 100);
 
   button = createButton('start');
-  button.position(170, 100);
+  button.position(170, 300);
   button.mousePressed(startPixelMode); // ボタン押したらピクセルモードへ
 
   mySelect = createSelect();
