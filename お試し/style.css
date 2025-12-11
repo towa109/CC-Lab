@@ -1,38 +1,24 @@
-html,
-body {
+html, body {
   margin: 0;
   padding: 0;
-
-  /* ⭐ allow vertical centering */
   height: 100%;
 }
 
+/* ⭐ This centers EVERYTHING inside body */
 body {
   display: flex;
-  justify-content: center;   /* horizontal center */
-  align-items: center;       /* vertical center */
-  background: #111;          /* optional aesthetic */
+  justify-content: center;   /* horizontally center */
+  align-items: center;       /* vertically center */
+  background: #fff;          /* keep white background or change if you want */
+}
+
+/* keep your original wrapper settings */
+.main-wrapper {
+  max-width: 800px;
+  width: 100%;
+  text-align: center;
 }
 
 canvas {
   display: block;
-}
-
-/* wrapper stays centered */
-.main-wrapper {
-  max-width: 800px;
-  margin: 0 auto;
-
-  /* ⭐ center content inside the wrapper */
-  text-align: center;
-
-  /* ⭐ REMOVE vertical padding since flex already centers */
-  padding: 0;
-}
-
-/* ⭐ make p5 canvas container center its content */
-#p5-canvas-container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
 }
