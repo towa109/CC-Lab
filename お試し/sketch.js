@@ -3,10 +3,8 @@
 // =========================
 
 // UI
-let myInput;
 let button;
 let mySelect;
-let displayText = "";
 
 // モード管理
 let mode = "home"; // "home" or "pixels"
@@ -16,18 +14,18 @@ let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
 let tileSize = 5;
-let assembled = true; // true = 集合, false = 散乱
-let clickCount = 0;   // ピクセル画面でのクリック回数
+let assembled = true; 
+let clickCount = 0;
 
 
 // =========================
 //  画像読み込み
 // =========================
 function preload() {
-  imgSpring = loadImage("DSC04190.jpg");              // 桜の川
-  imgSummer = loadImage("DSC04033.jpg");              // 緑の日本家屋
-  imgFall   = loadImage("DSC04626-Enhanced-NR.jpg");  // 室内（猫）
-  imgWinter = loadImage("DSC_7239.jpg");              // 雪の日本家屋
+  imgSpring = loadImage("DSC04190.jpg");              // 桜
+  imgSummer = loadImage("DSC04033.jpg");              // 夏の家
+  imgFall   = loadImage("DSC04626-Enhanced-NR.jpg");  // 室内猫
+  imgWinter = loadImage("DSC_7239.jpg");              // 雪の家
 }
 
 
@@ -37,12 +35,13 @@ function preload() {
 function setup() {
   createCanvas(800, 450);
 
-  // ---- ホーム画面 UI ----
-  myInput = createInput();
+  // ---- ホーム UI ----
   button = createButton('start');
-  button.mousePressed(startPixelMode); // ボタン押したらピクセルモードへ
+  button.position(350, 200);
+  button.mousePressed(startPixelMode);
 
   mySelect = createSelect();
+  mySelect.position(350, 160);
   mySelect.option('spring');
   mySelect.option('summer');
   mySelect.option('fall');
@@ -63,75 +62,47 @@ function draw() {
 
 
 // =========================
-//  ホーム画面の描画
+//  ホーム画面
 // =========================
 function drawHomeScreen() {
-  background(0); // まず真っ黒でクリア
+  background(235);
 
-  // 今選んでいる季節の画像を取得
-  let season = mySelect.value();
-  let previewImg = imgSpring;
-  if (season === 'summer') previewImg = imgSummer;
-  else if (season === 'fall') previewImg = imgFall;
-  else if (season === 'winter') previewImg = imgWinter;
-
-  // --- 上半分に写真を表示 ---
-  // キャンバス幅いっぱい・高さ 260px くらいで伸縮
-  image(previewImg, 0, 0, width, 260);
-
-  // --- 下のエリアを少し明るくして UI エリアっぽく ---
-  noStroke();
-  fill(250, 245, 240);
-  rect(0, 260, width, height - 260);
-
-  // テキスト
+  textAlign(CENTER);
   fill(0);
-  textSize(20);
-  textAlign(LEFT);
-  text("Type something and choose a season!", 20, 290);
+  textSize(26);
+  text("Choose a season and press start", width/2, 100);
 
   textSize(16);
-  text(displayText, 20, 320);
-
-  // --- UI の位置を「写真の下」にそろえる ---
-  let uiY = 350; // Y位置：写真の下のあたり
-  myInput.position(20, uiY);
-  button.position(260, uiY);
-  mySelect.position(340, uiY);
+  text("No picture will show until you start", width/2, 130);
 }
 
 
 // =========================
-//  ボタンが押されたとき
+//  start button pressed
 // =========================
 function startPixelMode() {
-  // 入力テキストを覚えておく
-  displayText = myInput.value();
-
-  // 選んだ季節から画像を決める
   let season = mySelect.value();
+
   if (season === 'spring') currentImg = imgSpring;
   else if (season === 'summer') currentImg = imgSummer;
   else if (season === 'fall')   currentImg = imgFall;
   else if (season === 'winter') currentImg = imgWinter;
-  else currentImg = imgSpring;
 
-  // 画像からタイルを作成
   buildTilesForImage(currentImg);
 
-  // 状態リセット
   assembled = true;
   clickCount = 0;
   mode = "pixels";
 
-  // UI を隠す
-  myInput.hide();
+  // hide UI
   button.hide();
   mySelect.hide();
 }
 
 
-// 指定した画像から tiles を作る
+// =========================
+//  タイル構築
+// =========================
 function buildTilesForImage(img) {
   tiles = [];
 
@@ -145,50 +116,36 @@ function buildTilesForImage(img) {
       tiles.push(p);
     }
   }
-
-  // 最初は写真どおり
-  for (let t of tiles) {
-    t.x = t.homeX;
-    t.y = t.homeY;
-  }
 }
 
 
 // =========================
-//  ピクセル画面の描画
+//  ピクセル描画画面
 // =========================
 function drawPixelScreen() {
   background(10);
 
-  for (let i = 0; i < tiles.length; i++) {
-    tiles[i].update(assembled);
-    tiles[i].display(tileSize);
+  for (let p of tiles) {
+    p.update(assembled);
+    p.display(tileSize);
   }
 
-  // 下の説明テキスト
   fill(255);
   noStroke();
   textAlign(CENTER);
   textSize(14);
 
   if (clickCount < 3) {
-    if (assembled) {
-      text("click = scatter pixels", width / 2, height - 20);
-    } else {
-      text("click = assemble pixels", width / 2, height - 20);
-    }
-    text("3rd click = back to home", width / 2, height - 5);
-  }
+    if (assembled) text("click = scatter", width/2, height - 20);
+    else text("click = assemble", width/2, height - 20);
 
-  // 上に入力テキストも表示
-  textAlign(LEFT);
-  textSize(16);
-  text(displayText, 20, 30);
+    text("3rd click = back to home", width/2, height - 5);
+  }
 }
 
 
 // =========================
-//  マウスクリック
+//  mouse click
 // =========================
 function mousePressed() {
   if (mode !== "pixels") return;
@@ -196,28 +153,19 @@ function mousePressed() {
   clickCount++;
 
   if (clickCount < 3) {
-    // 1回目・2回目 → 散乱 / 集合 トグル
     assembled = !assembled;
 
     if (!assembled) {
-      // 散らばるモード
-      for (let i = 0; i < tiles.length; i++) {
-        tiles[i].resetScatterTarget();
-      }
+      for (let p of tiles) p.resetScatterTarget();
     } else {
-      // 集合モード
-      for (let i = 0; i < tiles.length; i++) {
-        tiles[i].orbitRadius = random(10, 40);
-      }
+      for (let p of tiles) p.orbitRadius = random(10, 40);
     }
+
   } else {
-    // 3回目 → ホーム画面へ戻る
+    // return home
     mode = "home";
     tiles = [];
-    assembled = true;
 
-    // UI を再表示
-    myInput.show();
     button.show();
     mySelect.show();
   }
@@ -225,23 +173,20 @@ function mousePressed() {
 
 
 // =========================
-//  PixelPiece クラス
+//  PixelPiece class
 // =========================
 class PixelPiece {
   constructor(homeX, homeY, col) {
     this.homeX = homeX;
     this.homeY = homeY;
-
     this.x = homeX;
     this.y = homeY;
 
     this.col = col;
 
-    // scatter 用ターゲット
     this.scatterX = random(width);
     this.scatterY = random(height);
 
-    // 動きパラメータ
     this.angle = random(TWO_PI);
     this.orbitRadius = random(10, 40);
     this.noiseOffset = random(1000);
@@ -251,42 +196,33 @@ class PixelPiece {
   }
 
   update(assembleMode) {
-    let targetX, targetY, easeAmount;
+    let targetX, targetY, ease;
 
     if (assembleMode) {
-      // 集合モード：くるくるしながら home に戻る
       this.angle += this.spinSpeed;
       this.orbitRadius = lerp(this.orbitRadius, 0, 0.05);
 
-      let offsetX = cos(this.angle) * this.orbitRadius;
-      let offsetY = sin(this.angle) * this.orbitRadius;
+      targetX = this.homeX + cos(this.angle) * this.orbitRadius;
+      targetY = this.homeY + sin(this.angle) * this.orbitRadius;
 
-      targetX = this.homeX + offsetX;
-      targetY = this.homeY + offsetY;
-      easeAmount = 0.2;
+      ease = 0.2;
     } else {
-      // 散乱モード
       this.scatterX += this.vx;
       this.scatterY += this.vy;
 
-      if (this.scatterX < -100 || this.scatterX > width + 100) {
-        this.vx *= -1;
-      }
-      if (this.scatterY < -100 || this.scatterY > height + 100) {
-        this.vy *= -1;
-      }
+      if (this.scatterX < -100 || this.scatterX > width + 100) this.vx *= -1;
+      if (this.scatterY < -100 || this.scatterY > height + 100) this.vy *= -1;
 
       this.noiseOffset += 0.01;
-      let wobbleX = map(noise(this.noiseOffset), 0, 1, -20, 20);
-      let wobbleY = map(noise(this.noiseOffset + 1000), 0, 1, -20, 20);
 
-      targetX = this.scatterX + wobbleX;
-      targetY = this.scatterY + wobbleY;
-      easeAmount = 0.08;
+      targetX = this.scatterX + map(noise(this.noiseOffset), 0, 1, -20, 20);
+      targetY = this.scatterY + map(noise(this.noiseOffset + 1000), 0, 1, -20, 20);
+
+      ease = 0.08;
     }
 
-    this.x += (targetX - this.x) * easeAmount;
-    this.y += (targetY - this.y) * easeAmount;
+    this.x += (targetX - this.x) * ease;
+    this.y += (targetY - this.y) * ease;
   }
 
   resetScatterTarget() {
