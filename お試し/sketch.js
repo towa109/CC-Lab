@@ -1,15 +1,14 @@
 // =========================
-//  グローバル変数
+//  GLOBAL VARIABLES
 // =========================
 
 // UI
-let button;
 let mySelect;
 
-// モード管理
+// mode
 let mode = "home";
 
-// 画像 & ピクセル
+// images
 let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
@@ -17,13 +16,13 @@ let tileSize = 5;
 let assembled = true;
 let clickCount = 0;
 
-// 中央配置用オフセット
+// center offset
 let photoXOffset;
 let photoYOffset;
 
 
 // =========================
-//  画像読み込み
+//  preload images
 // =========================
 function preload() {
   imgSpring = loadImage("DSC04190.jpg");
@@ -39,15 +38,14 @@ function preload() {
 function setup() {
   createCanvas(800, 450);
 
-  // UI
   mySelect = createSelect();
   mySelect.option("spring");
   mySelect.option("summer");
   mySelect.option("fall");
   mySelect.option("winter");
 
-  button = createButton("start");
-  button.mousePressed(startPixelMode);
+  // ⭐ select を変えたら自動で画像表示スタート
+  mySelect.changed(startPixelMode);
 }
 
 
@@ -64,30 +62,31 @@ function draw() {
 
 
 // =========================
-//  ホーム画面
+//  HOME SCREEN
 // =========================
 function drawHomeScreen() {
   background(235);
 
   textAlign(CENTER);
   fill(0);
+
+  // ⭐ 文字を下げる（写真と被らない）
   textSize(26);
-  text("Choose a season and press start", width/2, 80);
+  text("Choose a season to begin", width/2, height/2 + 80);
 
   textSize(16);
-  text("Picture will appear AFTER clicking start", width/2, 110);
+  text("Picture will appear instantly", width/2, height/2 + 110);
 
-  // ⭐ UI は写真表示予定の「上中央」に配置
-  let uiX = width / 2 - 60;
-  let uiY = height / 2 - 50;
+  // ⭐ セレクトを写真が出る位置の下に配置
+  let uiX = width / 2 - 50;
+  let uiY = height / 2 + 140;
 
   mySelect.position(uiX, uiY);
-  button.position(uiX, uiY + 40);
 }
 
 
 // =========================
-//  start pressed
+//  start triggered by selecting season
 // =========================
 function startPixelMode() {
   let season = mySelect.value();
@@ -104,29 +103,23 @@ function startPixelMode() {
   mode = "pixels";
 
   mySelect.hide();
-  button.hide();
 }
 
 
 // =========================
-//  中央画像としてタイル構築
+//  BUILD PIXELS IN THE CENTER
 // =========================
 function buildTilesForImage(img) {
   tiles = [];
-
   img.loadPixels();
 
-  // ⭐ 画像を canvas の真ん中に置くための offset
   photoXOffset = (width - img.width) / 2;
   photoYOffset = (height - img.height) / 2;
 
   for (let y = 0; y < img.height; y += tileSize) {
     for (let x = 0; x < img.width; x += tileSize) {
       let c = img.get(x, y);
-
-      // ⭐ ここで中央にずらす
       let p = new PixelPiece(x + photoXOffset, y + photoYOffset, c);
-
       tiles.push(p);
     }
   }
@@ -134,7 +127,7 @@ function buildTilesForImage(img) {
 
 
 // =========================
-//  ピクセル画面
+//  PIXEL SCREEN
 // =========================
 function drawPixelScreen() {
   background(10);
@@ -156,7 +149,7 @@ function drawPixelScreen() {
 
 
 // =========================
-//  mouse click
+//  mouse click logic
 // =========================
 function mousePressed() {
   if (mode !== "pixels") return;
@@ -176,19 +169,17 @@ function mousePressed() {
     mode = "home";
     tiles = [];
     mySelect.show();
-    button.show();
   }
 }
 
 
 // =========================
-//  PixelPiece class
+//  PixelPiece CLASS
 // =========================
 class PixelPiece {
   constructor(homeX, homeY, col) {
     this.homeX = homeX;
     this.homeY = homeY;
-
     this.x = homeX;
     this.y = homeY;
 
@@ -211,8 +202,10 @@ class PixelPiece {
     if (assembleMode) {
       this.angle += this.spinSpeed;
       this.orbitRadius = lerp(this.orbitRadius, 0, 0.05);
+
       targetX = this.homeX + cos(this.angle) * this.orbitRadius;
       targetY = this.homeY + sin(this.angle) * this.orbitRadius;
+
       ease = 0.2;
 
     } else {
