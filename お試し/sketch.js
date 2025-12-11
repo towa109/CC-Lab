@@ -12,13 +12,13 @@ let mode = "home";
 let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
-let tileSize = 8;   // ⭐ Larger = smoother performance
+let tileSize = 8;
 let assembled = true;
 let clickCount = 0;
 
-// center offset (after resizing)
-let photoXOffset;
-let photoYOffset;
+// center offsets
+let offsetX = 0;
+let offsetY = 0;
 
 
 // =========================
@@ -44,7 +44,6 @@ function setup() {
   mySelect.option("fall");
   mySelect.option("winter");
 
-  // selecting instantly starts
   mySelect.changed(startPixelMode);
 }
 
@@ -74,15 +73,15 @@ function drawHomeScreen() {
   text("Select a season to begin", width/2, height/2 + 70);
 
   textSize(16);
-  text("Picture appears instantly", width/2, height/2 + 100);
+  text("Picture will appear instantly", width/2, height/2 + 100);
 
-  // place selector under the picture area
+  // selector centered under where image will be
   mySelect.position(width/2 - 50, height/2 + 140);
 }
 
 
 // =========================
-//  start triggered by selecting season
+//  START PIXEL MODE
 // =========================
 function startPixelMode() {
   let season = mySelect.value();
@@ -92,11 +91,11 @@ function startPixelMode() {
   else if (season === "fall")   currentImg = imgFall;
   else currentImg = imgWinter;
 
-  // ⭐ resize small → HUGE performance gain
-  currentImg.resize(800, 450);
+  // resize for better control
+  currentImg.resize(600, 338); // keep nice aspect ratio
   currentImg.loadPixels();
 
-  buildTiles();
+  buildTilesForCenteredImage();
 
   assembled = true;
   clickCount = 0;
@@ -107,20 +106,21 @@ function startPixelMode() {
 
 
 // =========================
-//  BUILD PIXELS
+//  BUILD PIXELS CENTERED
 // =========================
-function buildTiles() {
+function buildTilesForCenteredImage() {
   tiles = [];
 
-  // ⭐ center offset (now always fits canvas)
-  photoXOffset = 0;
-  photoYOffset = 0;
+  // ⭐ center the image inside the canvas
+  offsetX = (width  - currentImg.width)  / 2;
+  offsetY = (height - currentImg.height) / 2;
 
-  for (let y = 0; y < height; y += tileSize) {
-    for (let x = 0; x < width; x += tileSize) {
+  for (let y = 0; y < currentImg.height; y += tileSize) {
+    for (let x = 0; x < currentImg.width; x += tileSize) {
 
       let c = currentImg.get(x, y);
-      let p = new PixelPiece(x, y, c);
+
+      let p = new PixelPiece(x + offsetX, y + offsetY, c);
       tiles.push(p);
     }
   }
@@ -140,7 +140,6 @@ function drawPixelScreen() {
 
   fill(255);
   textAlign(CENTER);
-  textSize(14);
 
   if (clickCount < 3) {
     text(assembled ? "click = scatter" : "click = assemble", width/2, height - 20);
@@ -150,7 +149,7 @@ function drawPixelScreen() {
 
 
 // =========================
-//  CLICK LOGIC
+//  mouse click
 // =========================
 function mousePressed() {
   if (mode !== "pixels") return;
@@ -163,7 +162,6 @@ function mousePressed() {
     if (!assembled) {
       for (let p of tiles) p.resetScatterTarget();
     }
-
   } else {
     mode = "home";
     tiles = [];
@@ -173,7 +171,7 @@ function mousePressed() {
 
 
 // =========================
-//  PixelPiece CLASS
+//  PIXEL PIECE CLASS
 // =========================
 class PixelPiece {
   constructor(homeX, homeY, col) {
@@ -182,7 +180,6 @@ class PixelPiece {
 
     this.x = homeX;
     this.y = homeY;
-
     this.col = col;
 
     this.scatterX = random(width);
@@ -206,7 +203,6 @@ class PixelPiece {
       targetY = this.scatterY;
     }
 
-    // ⭐ smooth movement (no jitter)
     this.x += (targetX - this.x) * 0.1;
     this.y += (targetY - this.y) * 0.1;
   }
