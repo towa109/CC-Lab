@@ -8,7 +8,7 @@ let currentImageIndex = 0; // 0 = img1, 1 = img2
 function preload() {
   // ★ ここのファイル名は自分の画像に合わせて変えてね
   img1 = loadImage("DSC04190.jpg");   // 最初の写真
-  img2 = loadImage("DSC_7239.jpg");   // 変身後の写真
+  img2 = loadImage("DSC_7239.jpg");        // 変身後の写真
 }
 
 function setup() {
