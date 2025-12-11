@@ -15,7 +15,7 @@ let mode = "home"; // "home" or "pixels"
 let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
-let tileSize = 5;
+let tileSize = 8;
 let assembled = true; // true = 集合, false = 散乱
 let clickCount = 0;   // ピクセル画面でのクリック回数
 
@@ -47,7 +47,7 @@ function setup() {
   button.mousePressed(startPixelMode); // ボタン押したらピクセルモードへ
 
   mySelect = createSelect();
-  mySelect.position(300, 100);
+  mySelect.position(300, 300);
   mySelect.option('spring');
   mySelect.option('summer');
   mySelect.option('fall');
