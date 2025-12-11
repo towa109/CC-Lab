@@ -80,9 +80,9 @@ function drawHomeScreen() {
   else background(240);
 
   fill(0);
-  textSize(20);
+  textSize(15);
   textAlign(LEFT);
-  text("Type something and choose a season!", 20, 50);
+  text("Choose!", 20, 50);
 
   textSize(16);
   text(displayText, 25, 75);
