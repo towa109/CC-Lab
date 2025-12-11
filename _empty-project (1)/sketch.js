@@ -40,7 +40,7 @@ function setup() {
 
   // ---- ホーム画面 UI ----
   myInput = createInput();
-  myInput.position(20, 100);
+  myInput.position(20, 300);
 
   button = createButton('start');
   button.position(170, 300);
