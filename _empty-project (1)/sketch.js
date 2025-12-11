@@ -27,14 +27,14 @@ function setup() {
   createCanvas(800, 450);
 
   myInput = createInput();
-  myInput.position(20, 300);
+  myInput.position(40, 350);
 
   button = createButton('start');
-  button.position(170, 300);
+  button.position(190, 350);
   button.mousePressed(startPixelMode); // push botton to pixel
 
   mySelect = createSelect();
-  mySelect.position(300, 300);
+  mySelect.position(320, 350);
   mySelect.option('spring');
   mySelect.option('summer');
   mySelect.option('fall');
