@@ -22,3 +22,10 @@ body {
 canvas {
   display: block;
 }
+/* center the dropdown no matter where p5 places it */
+select {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
