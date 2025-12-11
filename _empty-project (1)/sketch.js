@@ -1,50 +1,37 @@
-// =========================
-//  グローバル変数
-// =========================
-
-// UI
 let myInput;
 let button;
 let mySelect;
 let displayText = "";
 
-// モード管理
+
 let mode = "home"; // "home" or "pixels"
 
-// 画像 & ピクセル
+// pic
 let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
 let tileSize = 8;
 let assembled = true; // true = 集合, false = 散乱
-let clickCount = 0;   // ピクセル画面でのクリック回数
+let clickCount = 0;   
 
 
-// =========================
-//  画像読み込み
-// =========================
 function preload() {
-  // ファイル名はプロジェクトと同じフォルダに置いておく
+  
   imgSpring = loadImage("DSC04190.jpg");              // 桜の川
-  imgSummer = loadImage("DSC04033.jpg");              // 緑の日本家屋
+  imgWinter = loadImage("DSC04033.jpg");              // 緑の日本家屋
   imgFall   = loadImage("DSC04626-Enhanced-NR.jpg");  // 室内（猫）
-  imgWinter = loadImage("IMG_4982.JPG");              // 雪の日本家屋
+  imgSummer = loadImage("IMG_4982.JPG");              // 雪の日本家屋
 }
 
-
-// =========================
-//  setup
-// =========================
 function setup() {
   createCanvas(800, 450);
 
-  // ---- ホーム画面 UI ----
   myInput = createInput();
   myInput.position(20, 300);
 
   button = createButton('start');
   button.position(170, 300);
-  button.mousePressed(startPixelMode); // ボタン押したらピクセルモードへ
+  button.mousePressed(startPixelMode); // push botton to pixel
 
   mySelect = createSelect();
   mySelect.position(300, 300);
@@ -55,9 +42,6 @@ function setup() {
 }
 
 
-// =========================
-//  draw
-// =========================
 function draw() {
   if (mode === "home") {
     drawHomeScreen();
@@ -67,11 +51,8 @@ function draw() {
 }
 
 
-// =========================
-//  ホーム画面の描画
-// =========================
 function drawHomeScreen() {
-  // 季節で背景色ちょっと変える
+ 
   let season = mySelect.value();
   if (season === 'spring') background(255, 220, 230);
   else if (season === 'summer') background(210, 255, 220);
@@ -89,14 +70,10 @@ function drawHomeScreen() {
 }
 
 
-// =========================
-//  ボタンが押されたとき
-// =========================
 function startPixelMode() {
-  // 入力テキストを覚えておく
+  
   displayText = myInput.value();
 
-  // 選んだ季節から画像を決める
   let season = mySelect.value();
   if (season === 'spring') currentImg = imgSpring;
   else if (season === 'summer') currentImg = imgSummer;
@@ -104,22 +81,21 @@ function startPixelMode() {
   else if (season === 'winter') currentImg = imgWinter;
   else currentImg = imgSpring;
 
-  // 画像からタイルを作成
+  // 画像からタイル
   buildTilesForImage(currentImg);
 
-  // 状態リセット
+  // リセット
   assembled = true;
   clickCount = 0;
   mode = "pixels";
 
-  // UI を隠す
   myInput.hide();
   button.hide();
   mySelect.hide();
 }
 
 
-// 指定した画像から tiles を作る
+//make tiles from pic
 function buildTilesForImage(img) {
   tiles = [];
 
@@ -133,8 +109,6 @@ function buildTilesForImage(img) {
       tiles.push(p);
     }
   }
-
-  // 最初は写真どおり
   for (let t of tiles) {
     t.x = t.homeX;
     t.y = t.homeY;
@@ -142,9 +116,6 @@ function buildTilesForImage(img) {
 }
 
 
-// =========================
-//  ピクセル画面の描画
-// =========================
 function drawPixelScreen() {
   background(10);
 
@@ -174,17 +145,13 @@ function drawPixelScreen() {
   text(displayText, 20, 30);
 }
 
-
-// =========================
-//  マウスクリック
-// =========================
 function mousePressed() {
   if (mode !== "pixels") return;
 
   clickCount++;
 
   if (clickCount < 3) {
-    // 1回目・2回目 → 散乱 / 集合 トグル
+    // 散乱 / 集合 トグル
     assembled = !assembled;
 
     if (!assembled) {
@@ -199,22 +166,16 @@ function mousePressed() {
       }
     }
   } else {
-    // 3回目 → ホーム画面へ戻る
     mode = "home";
     tiles = [];
     assembled = true;
 
-    // UI を再表示
     myInput.show();
     button.show();
     mySelect.show();
   }
 }
 
-
-// =========================
-//  PixelPiece クラス
-// =========================
 class PixelPiece {
   constructor(homeX, homeY, col) {
     this.homeX = homeX;
