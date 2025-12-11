@@ -12,11 +12,11 @@ let mode = "home";
 let imgSpring, imgSummer, imgFall, imgWinter;
 let currentImg;
 let tiles = [];
-let tileSize = 8;
+let tileSize = 8;   // ⭐ Larger = smoother performance
 let assembled = true;
 let clickCount = 0;
 
-// center offset
+// center offset (after resizing)
 let photoXOffset;
 let photoYOffset;
 
@@ -44,7 +44,7 @@ function setup() {
   mySelect.option("fall");
   mySelect.option("winter");
 
-  // ⭐ select を変えたら自動で画像表示スタート
+  // selecting instantly starts
   mySelect.changed(startPixelMode);
 }
 
@@ -70,18 +70,14 @@ function drawHomeScreen() {
   textAlign(CENTER);
   fill(0);
 
-  // ⭐ 文字を下げる（写真と被らない）
   textSize(26);
-  text("Choose a season to begin", width/2, height/2 + 80);
+  text("Select a season to begin", width/2, height/2 + 70);
 
   textSize(16);
-  text("Picture will appear instantly", width/2, height/2 + 110);
+  text("Picture appears instantly", width/2, height/2 + 100);
 
-  // ⭐ セレクトを写真が出る位置の下に配置
-  let uiX = width / 2 - 50;
-  let uiY = height / 2 + 140;
-
-  mySelect.position(uiX, uiY);
+  // place selector under the picture area
+  mySelect.position(width/2 - 50, height/2 + 140);
 }
 
 
@@ -93,10 +89,14 @@ function startPixelMode() {
 
   if (season === "spring") currentImg = imgSpring;
   else if (season === "summer") currentImg = imgSummer;
-  else if (season === "fall") currentImg = imgFall;
+  else if (season === "fall")   currentImg = imgFall;
   else currentImg = imgWinter;
 
-  buildTilesForImage(currentImg);
+  // ⭐ resize small → HUGE performance gain
+  currentImg.resize(800, 450);
+  currentImg.loadPixels();
+
+  buildTiles();
 
   assembled = true;
   clickCount = 0;
@@ -107,19 +107,20 @@ function startPixelMode() {
 
 
 // =========================
-//  BUILD PIXELS IN THE CENTER
+//  BUILD PIXELS
 // =========================
-function buildTilesForImage(img) {
+function buildTiles() {
   tiles = [];
-  img.loadPixels();
 
-  photoXOffset = (width - img.width) / 2;
-  photoYOffset = (height - img.height) / 2;
+  // ⭐ center offset (now always fits canvas)
+  photoXOffset = 0;
+  photoYOffset = 0;
 
-  for (let y = 0; y < img.height; y += tileSize) {
-    for (let x = 0; x < img.width; x += tileSize) {
-      let c = img.get(x, y);
-      let p = new PixelPiece(x + photoXOffset, y + photoYOffset, c);
+  for (let y = 0; y < height; y += tileSize) {
+    for (let x = 0; x < width; x += tileSize) {
+
+      let c = currentImg.get(x, y);
+      let p = new PixelPiece(x, y, c);
       tiles.push(p);
     }
   }
@@ -149,7 +150,7 @@ function drawPixelScreen() {
 
 
 // =========================
-//  mouse click logic
+//  CLICK LOGIC
 // =========================
 function mousePressed() {
   if (mode !== "pixels") return;
@@ -161,8 +162,6 @@ function mousePressed() {
 
     if (!assembled) {
       for (let p of tiles) p.resetScatterTarget();
-    } else {
-      for (let p of tiles) p.orbitRadius = random(10, 40);
     }
 
   } else {
@@ -180,6 +179,7 @@ class PixelPiece {
   constructor(homeX, homeY, col) {
     this.homeX = homeX;
     this.homeY = homeY;
+
     this.x = homeX;
     this.y = homeY;
 
@@ -188,49 +188,34 @@ class PixelPiece {
     this.scatterX = random(width);
     this.scatterY = random(height);
 
-    this.angle = random(TWO_PI);
-    this.orbitRadius = random(10, 40);
-    this.noiseOffset = random(1000);
-    this.vx = random(-0.5, 0.5);
-    this.vy = random(-0.5, 0.5);
-    this.spinSpeed = random(-0.08, 0.08);
+    this.vx = random(-0.6, 0.6);
+    this.vy = random(-0.6, 0.6);
   }
 
   update(assembleMode) {
-    let targetX, targetY, ease;
+    let targetX, targetY;
 
     if (assembleMode) {
-      this.angle += this.spinSpeed;
-      this.orbitRadius = lerp(this.orbitRadius, 0, 0.05);
-
-      targetX = this.homeX + cos(this.angle) * this.orbitRadius;
-      targetY = this.homeY + sin(this.angle) * this.orbitRadius;
-
-      ease = 0.2;
-
+      targetX = this.homeX;
+      targetY = this.homeY;
     } else {
       this.scatterX += this.vx;
       this.scatterY += this.vy;
 
-      this.noiseOffset += 0.01;
-
-      targetX = this.scatterX + map(noise(this.noiseOffset), 0, 1, -20, 20);
-      targetY = this.scatterY + map(noise(this.noiseOffset + 1000), 0, 1, -20, 20);
-
-      ease = 0.08;
+      targetX = this.scatterX;
+      targetY = this.scatterY;
     }
 
-    this.x += (targetX - this.x) * ease;
-    this.y += (targetY - this.y) * ease;
+    // ⭐ smooth movement (no jitter)
+    this.x += (targetX - this.x) * 0.1;
+    this.y += (targetY - this.y) * 0.1;
   }
 
   resetScatterTarget() {
     this.scatterX = random(width);
     this.scatterY = random(height);
-    this.vx = random(-0.8, 0.8);
-    this.vy = random(-0.8, 0.8);
-    this.noiseOffset = random(1000);
-    this.orbitRadius = random(20, 60);
+    this.vx = random(-1, 1);
+    this.vy = random(-1, 1);
   }
 
   display(size) {
