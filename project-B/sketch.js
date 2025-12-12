@@ -124,7 +124,6 @@ function drawPixelScreen() {
     tiles[i].display(tileSize);
   }
 
-  // 下の説明テキスト
   fill(255);
   noStroke();
   textAlign(CENTER);
@@ -139,7 +138,6 @@ function drawPixelScreen() {
     text("3rd click = back to home", width / 2, height - 5);
   }
 
-  // 上に入力テキストも表示
   textAlign(LEFT);
   textSize(16);
   text(displayText, 20, 30);
@@ -151,16 +149,16 @@ function mousePressed() {
   clickCount++;
 
   if (clickCount < 3) {
-    // 散乱 / 集合 トグル
+    // 散乱 / 集合 
     assembled = !assembled;
 
     if (!assembled) {
-      // 散らばるモード
+      // 散らばる
       for (let i = 0; i < tiles.length; i++) {
         tiles[i].resetScatterTarget();
       }
     } else {
-      // 集合モード
+      // 集合
       for (let i = 0; i < tiles.length; i++) {
         tiles[i].orbitRadius = random(10, 40);
       }
